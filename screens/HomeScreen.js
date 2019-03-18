@@ -27,7 +27,7 @@ export default class HomeScreen extends React.Component {
         tag: 2
       }
     ],
-    serverAddress: '192.168.100.54',
+    serverAddress: '192.168.100.3',
 
   }
 
@@ -56,7 +56,8 @@ export default class HomeScreen extends React.Component {
                     }}>
                       {//  <Image source={{ uri: 'http://' + this.state.serverAddress + '/' + nugget.image }}
                         //   style={styles.nuggetImage} />
-                      }</View>
+                      }
+                    </View>
                   </TouchableOpacity>
                 </View>
               )

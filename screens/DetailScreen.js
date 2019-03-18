@@ -30,12 +30,12 @@ export default class DetailScreen extends React.Component {
         </View>
         <Text style={styles.txt}>titel</Text>
         <Text>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</Text>
-
+        <Text>tags</Text>
+        <Text>Rubrik</Text>
 
       </View>
     )
   }
-
 }
 
 const styles = StyleSheet.create({

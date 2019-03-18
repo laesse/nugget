@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import MapView from 'react-native-maps';
 
-export default class SettingsScreen extends React.Component {
+export default class MapScreen extends React.Component {
   static navigationOptions = {
     header: null,
   };
@@ -28,6 +28,7 @@ export default class SettingsScreen extends React.Component {
             }}
             title={"title"}
             description={"description"}
+            pinColor={'#63f'}
           />
         </MapView>
       </View>
