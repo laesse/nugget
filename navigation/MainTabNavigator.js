@@ -8,6 +8,7 @@ import AddScreen from '../screens/AddScreen';
 import MapScreen from '../screens/MapScreen';
 import DetailScreen from '../screens/DetailScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import ColorPickerScreen from '../screens/ColorPickerScreen'
 
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
@@ -40,6 +41,7 @@ AddStack.navigationOptions = {
 
 const MapStack = createStackNavigator({
   Map: MapScreen,
+  Detail: DetailScreen
 });
 
 MapStack.navigationOptions = {
@@ -54,6 +56,7 @@ MapStack.navigationOptions = {
 
 const SettingsStack = createStackNavigator({
   Seetings: SettingsScreen,
+  Color: ColorPickerScreen
 });
 
 SettingsStack.navigationOptions = {

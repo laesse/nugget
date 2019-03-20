@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TextInput, ActionSheetIOS, TouchableOpacity, Text, FlatList } from 'react-native';
+import { View, StyleSheet, TextInput, ActionSheetIOS, TouchableOpacity, Text, Image } from 'react-native';
 
 export default class DetailScreen extends React.Component {
   static navigationOptions = {
@@ -7,31 +7,32 @@ export default class DetailScreen extends React.Component {
   };
 
   state = {
-    newNugget: {
+    nugget: {
       title: '',
       text: '',
-      imgB64: '',
+      imgLink: '',
       rubrik: null,
       tags: [],
     },
-    tags: ['Cancel', 'test', 'test2'],
-    rubriken: ['Cancel', 'test', 'test2']
+    serverAddress: '192.168.100.3',
+  }
+
+  componentDidMount = () => {
+
   }
 
   render = () => {
+    const nugget = this.props.navigation.getParam('nugget', null);
     return (
       <View style={styles.container}>
         <View style={styles.topMargin}></View>
-        {//  <Image source={{ uri: 'http://' + this.state.serverAddress + '/' + nugget.image }}
-          //   style={styles.nuggetImage} />
-        }
         <View style={styles.img}>
-          <Text>bild</Text>
+          <Image source={{ uri: 'http://' + this.state.serverAddress + ':8080' + nugget.imgLink }} style={styles.img} />
         </View>
-        <Text style={styles.txt}>titel</Text>
-        <Text>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</Text>
-        <Text>tags</Text>
-        <Text>Rubrik</Text>
+        <Text style={styles.txt}>{nugget.title}</Text>
+        <Text>{nugget.text}</Text>
+        <Text></Text>
+        <Text></Text>
 
       </View>
     )
@@ -44,8 +45,6 @@ const styles = StyleSheet.create({
 
   },
   img: {
-    borderColor: '#000',
-    borderWidth: 1,
     marginLeft: 10,
     marginRight: 10,
     alignItems: 'stretch',

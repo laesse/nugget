@@ -124,7 +124,6 @@ export default class LinksScreen extends React.Component {
 const styles = StyleSheet.create({
   topMargin: {
     marginTop: 70,
-
   },
   box: {
     marginTop: 10,
