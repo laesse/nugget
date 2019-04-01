@@ -1,9 +1,8 @@
 import React from 'react';
 import {
     View,
-    StyleSheet, Text, TextInput, TouchableOpacity
+    StyleSheet, Text, TextInput, TouchableOpacity, AsyncStorage
 } from 'react-native'
-import { ColorPicker } from 'react-native-color-picker'
 
 
 export default class SettingsScreen extends React.Component {
@@ -13,38 +12,62 @@ export default class SettingsScreen extends React.Component {
 
 
     state = {
-        tags: [
-            {
-                id: 1,
-                text: "abc",
-            }, {
-                id: 2,
-                text: "abcd",
-            },
-        ],
         rubriken: [{ id: 0, text: '', color: '#fdae12' }],
-        serverAddress: '192.168.100.3',
+        newRubrik: { id: 0, text: '', color: '#fdae12' },
+        tags: [{ id: 0, text: '' }],
+        newTag: { id: 0, text: '' },
+        serverAddress: '192.168.1.110',
     }
 
-    componentDidFocus = (payload) => {
-        fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/rubrik')
+    componentDidFocus = async (payload) => {
+        let token = await AsyncStorage.getItem('token')
+        fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/rubrik', {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        })
             .then(response => response.json())
             .then(rubriks => this.setState({ rubriken: rubriks }))
+        fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/tag', {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        })
+            .then(response => response.json())
+            .then(tags => this.setState({ tags: tags }))
     }
 
 
     componentDidMount = () => {
-        this.props.navigation.addListener('didFocus', (payload) => this.componentDidFocus(payload))
+        this.subs = [
+            this.props.navigation.addListener('didFocus', (payload) => this.componentDidFocus(payload)),
+        ];
     }
 
+    componentWillUnmount() {
+        this.subs.forEach(sub => sub.remove());
+    }
 
-    sendRubrik = (rubrik) => {
+    sendRubrik = async (rubrik) => {
+        let token = await AsyncStorage.getItem('token')
         fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/rubrik', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
             },
             body: JSON.stringify(rubrik)
+        }).then(response => response.json())
+    }
+    sendTags = async (tag) => {
+        let token = await AsyncStorage.getItem('token')
+        fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/tag', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
+            },
+            body: JSON.stringify(tag)
         }).then(response => response.json())
     }
 
@@ -76,16 +99,50 @@ export default class SettingsScreen extends React.Component {
         this.setState({ rubriken })
     }
     ocTagsText = (id, text) => {
+        let tagC = null
         let tags = this.state.tags;
-        for (let i = 0; i < tags.length; i++)
-            if (tags[i].id === id)
+        for (let i = 0; i < tags.length; i++) {
+            if (tags[i].id === id) {
                 tags[i].text = text;
-
+                tagC = tags[i]
+            }
+        }
+        console.log(tagC)
+        if (tagC !== null)
+            this.sendTags(tagC)
         this.setState({ tags })
     }
 
     getColorValue = (color) => {
         return parseInt(color.substring(1, 3), 16) + parseInt(color.substring(3, 5), 16) + parseInt(color.substring(5, 7), 16);
+    }
+
+    ocnewRChange = (color) => {
+        let newRubrik = this.state.newRubrik
+        newRubrik.color = color
+        this.setState({ newRubrik })
+    }
+    ocNewRubrikText = (text) => {
+        let newRubrik = this.state.newRubrik
+        newRubrik.text = text
+        this.setState({ newRubrik })
+    }
+    ocNewTagText = (text) => {
+        let newTag = this.state.newTag
+        newTag.text = text
+        this.setState({ newTag })
+    }
+    sendNewRubrik = () => {
+        let rubriken = this.state.rubriken
+        rubriken.push(this.state.newRubrik)
+        this.sendRubrik(this.state.newRubrik)
+            .then(() => { this.setState({ newRubrik: { id: 0, text: '', color: '#fdae12' }, rubriken }) })
+    }
+    sendNewTag = () => {
+        let tags = this.state.tags
+        tags.push(this.state.newTag)
+        this.sendTags(this.state.newTag)
+            .then(() => { this.setState({ newTag: { id: 0, text: '' }, tags }) })
     }
 
     render() {
@@ -105,6 +162,18 @@ export default class SettingsScreen extends React.Component {
                             </TouchableOpacity>
                         </View>
                     )}
+                    <View>
+                        <TextInput placeholder={"add new title"} style={styles.textInput} placeholderTextColor={"#a6dff2"} maxLength={30} value={this.state.newRubrik.text} onChangeText={(text) => this.ocNewRubrikText(text)} />
+                        <TouchableOpacity onPress={() => this.props.navigation.navigate('Color', { color: this.state.newRubrik.color, onChange: (color) => this.ocnewRChange(color) })}
+                            style={[{
+                                backgroundColor: this.state.newRubrik.color,
+                            }, styles.btn]}>
+                            <Text style={{ color: this.getColorValue("#888888") < this.getColorValue(this.state.newRubrik.color) ? "#000" : "#fff" }}>Color</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => this.sendNewRubrik()} style={[styles.btn, { backgroundColor: 'white' }]}>
+                            <Text>Send Rubrik</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <View>
                     <Text>Tags</Text>
@@ -113,6 +182,12 @@ export default class SettingsScreen extends React.Component {
                             <TextInput placeholder={"title"} style={styles.textInput} placeholderTextColor={"#a6dff2"} maxLength={30} value={tag.text} onChangeText={(text) => this.ocTagsText(tag.id, text)} />
                         </View>
                     )}
+                    <View>
+                        <TextInput placeholder={"new Tag title"} style={styles.textInput} placeholderTextColor={"#a6dff2"} maxLength={30} value={this.state.newTag.text} onChangeText={(text) => this.ocNewTagText(text)} />
+                    </View>
+                    <TouchableOpacity onPress={() => this.sendNewTag()} style={[styles.btn, { backgroundColor: 'white' }]}>
+                        <Text>Send Tag</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         )

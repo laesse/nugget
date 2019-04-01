@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   TextInput,
+  AsyncStorage,
 
 } from 'react-native';
 
@@ -18,25 +19,37 @@ export default class HomeScreen extends React.Component {
 
   state = {
     nuggets: [],
-    serverAddress: '192.168.100.3',
-
+    serverAddress: '192.168.1.110',
+    token: ""
   }
 
-  componentDidFocus = (payload) => {
-    fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/nugget')
+  componentDidFocus = async (payload) => {
+    let token = await AsyncStorage.getItem('token')
+    console.log(token)
+    fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/nugget', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
       .then(response => response.json())
-      .then(nuggets => this.setState({ nuggets }))
+      .then(nuggets => this.setState({ nuggets, token }))
   }
 
   componentDidMount = () => {
-    this.props.navigation.addListener('didFocus', (payload) => this.componentDidFocus(payload))
+    this.subs = [
+      this.props.navigation.addListener('didFocus', (payload) => this.componentDidFocus(payload)),
+    ];
+  }
+
+  componentWillUnmount() {
+    this.subs.forEach(sub => sub.remove());
   }
 
 
   render() {
     return (
       <View style={styles.container}>
-        <TextInput placeholder={"search"} style={styles.searchbar} placeholderTextColor={"#a6dff2"} maxLength={30} onChangeText={this.search} />
+        <TextInput placeholder={"search"} style={styles.searchbar} returnKeyType='done' placeholderTextColor={"#a6dff2"} maxLength={30} onChangeText={this.search} />
         <ScrollView style={styles.container} >
           {this.state.nuggets ?
             this.state.nuggets.map((nugget) => {
@@ -44,11 +57,14 @@ export default class HomeScreen extends React.Component {
                 <View key={nugget.id} style={styles.nugget}>
                   <TouchableOpacity style={styles.nuggetBox} onPress={() => this.nuggetPressed(nugget)} >
                     <View>
-                      <Text style={styles.nuggetText}>{nugget.text}</Text>
+                      <Text style={styles.nuggetText}>{nugget.title}</Text>
                     </View>
-                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'stretch', }}>
-                      <Image source={{ uri: 'http://' + this.state.serverAddress + ':8080' + nugget.imgLink }} style={styles.nuggetImage} />
-                    </View>
+                    <Image
+                      source={{ uri: 'http://' + this.state.serverAddress + ':8080' + nugget.imgLink }}
+                      resizeMode='stretch'
+                      style={{ flex: 1, height: 200, width: '100%', borderRadius: 5, alignSelf: 'center', marginBottom: 10, marginLeft: 10, marginRight: 10 }}
+                    />
+
                     <View style={styles.tagBox}>
                       {nugget.tags.map((tag) => {
                         return (
@@ -66,10 +82,21 @@ export default class HomeScreen extends React.Component {
       </View>
     );
   }
-  search = (text) => {
-    console.log(text)
 
+  search = async (text) => {
+    let token = this.state.token
+    fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/nugget/search', {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ searchText: text })
+    })
+      .then(response => response.json())
+      .then(nuggets => this.setState({ nuggets }))
   }
+
   nuggetPressed = (nugget) => {
     this.props.navigation.navigate('Detail', {
       nugget: nugget
@@ -89,13 +116,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     height: 20,
     marginLeft: 5,
+    marginRight: 5,
     paddingLeft: 5,
-    backgroundColor: '#555'
+    backgroundColor: '#555',
+    alignItems: 'center'
   },
   tagBox: {
+    marginLeft: -5,
+    marginRight: -5,
     flexDirection: 'row',
     flex: 1,
-
   },
   searchbar: {
     marginTop: 100,
@@ -114,16 +144,19 @@ const styles = StyleSheet.create({
     , marginRight: 10
     , backgroundColor: '#888'
     , borderRadius: 5
+    //, height: 250
     , padding: 10
+    , alignItems: 'center'
   },
   nuggetImage: {
     flex: 1,
-    //width: '100%',
-    height: 275,
-    resizeMode: 'contain',
-  },
+    width: null,
+    height: null,
+    resizeMode: 'contain'
+  }
+  ,
   nuggetText: {
-    textAlign: 'center'
+    alignItems: 'center'
     , color: '#fdfdfd'
   },
 

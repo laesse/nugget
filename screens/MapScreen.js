@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View,
-  StyleSheet, TouchableHighlight, Text
+  StyleSheet, TouchableHighlight, Text, AsyncStorage
 } from 'react-native'
 import MapView from 'react-native-maps';
 
@@ -13,23 +13,55 @@ export default class MapScreen extends React.Component {
 
   state = {
     nuggets: [],
-    serverAddress: '192.168.100.3',
+    serverAddress: '192.168.1.110',
   }
-  componentDidFocus = (payload) => {
-    fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/nugget')
+  componentDidFocus = async (payload) => {
+    let token = await AsyncStorage.getItem('token')
+    fetch('http://' + this.state.serverAddress + ':8080/nugget/v1/nugget', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
       .then(response => response.json())
       .then(nuggets => this.setState({ nuggets }))
 
   }
 
+
   componentDidMount = () => {
-    this.props.navigation.addListener('didFocus', (payload) => this.componentDidFocus(payload))
+    this.subs = [
+      this.props.navigation.addListener('didFocus', (payload) => this.componentDidFocus(payload)),
+    ];
   }
 
+  componentWillUnmount() {
+    this.subs.forEach(sub => sub.remove());
+  }
   markerClick = (nugget) => {
     this.props.navigation.navigate('Detail', {
       nugget: nugget
     })
+  }
+
+  marker = () => {
+    return (<>{
+      this.state.nuggets.map((nugget) => {
+        return (
+          < MapView.Marker
+            key={nugget.id}
+            coordinate={{
+              latitude: nugget.location.latitude,
+              longitude: nugget.location.longitude
+            }}
+            title={nugget.title}
+            description={nugget.text}
+            pinColor={nugget.rubrik.color}
+            onPress={(e) => { e.stopPropagation(); this.markerClick(nugget) }}
+          >
+
+          </MapView.Marker>)
+      })}
+    </>)
   }
 
   render() {
@@ -43,23 +75,7 @@ export default class MapScreen extends React.Component {
             longitudeDelta: 0.3,
           }}
         >
-
-          {this.state.nuggets.map((nugget) => {
-            return (
-              < MapView.Marker
-                key={nugget.id}
-                coordinate={{
-                  latitude: nugget.location.latitude,
-                  longitude: nugget.location.longitude
-                }}
-                title={nugget.title}
-                description={nugget.text}
-                pinColor={nugget.rubrik.color}
-                onPress={(e) => { e.stopPropagation(); this.markerClick(nugget) }}
-              >
-
-              </MapView.Marker>)
-          })}
+          {this.marker()}
         </MapView>
       </View>
     )

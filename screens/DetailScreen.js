@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TextInput, ActionSheetIOS, TouchableOpacity, Text, Image } from 'react-native';
+import { View, StyleSheet, TextInput, ActionSheetIOS, TouchableOpacity, Text, Image, AsyncStorage } from 'react-native';
 
 export default class DetailScreen extends React.Component {
   static navigationOptions = {
@@ -14,7 +14,7 @@ export default class DetailScreen extends React.Component {
       rubrik: null,
       tags: [],
     },
-    serverAddress: '192.168.100.3',
+    serverAddress: '192.168.1.110',
   }
 
   componentDidMount = () => {
